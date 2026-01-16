@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jugendkompass - Dein spiritueller Begleiter</title>
+    <meta name="description" content="Dein moderner spiritueller Begleiter für junge Menschen">
+    <meta name="theme-color" content="#5D8AA8">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="assets/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/liquid-glass.css">
+    <link rel="stylesheet" href="css/ios26.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Onboarding Screen -->
+    <div id="onboarding-screen" class="screen active">
+        <div class="liquid-glass-card onboarding-card">
+            <div class="app-logo">
+                <div class="compass-icon">🧭</div>
+                <h1 class="app-title">Jugendkompass</h1>
+            </div>
+            <div class="onboarding-form">
+                <p class="welcome-text">Willkommen auf deinem spirituellen Weg</p>
+                <input type="text" 
+                       id="user-name" 
+                       placeholder="Wie heißt du?" 
+                       maxlength="20"
+                       class="ios-input">
+                <button id="start-journey" class="ios-button-primary">
+                    Reise beginnen
+                </button>
+                <p class="hint">Dein Name wird nur lokal gespeichert</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container (hidden initially) -->
+    <div id="app-container" class="hidden">
+        <!-- Header -->
+        <header class="ios-header">
+            <div class="header-content">
+                <div class="greeting-section">
+                    <h1 id="user-greeting">Hallo Freund</h1>
+                    <p id="current-date" class="date-display"></p>
+                </div>
+                <button id="notifications-btn" class="icon-button">
+                    🔔
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Feed Section -->
+            <section id="feed-section" class="content-section active">
+                <div class="feed-container">
+                    <!-- Cards will be dynamically loaded here -->
+                </div>
+                <div id="refresh-indicator" class="refresh-indicator">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+
+            <!-- Audio Section -->
+            <section id="audio-section" class="content-section">
+                <div class="audio-header">
+                    <h2>Audio Inspiration</h2>
+                    <div class="search-container">
+                        <input type="text" 
+                               placeholder="Suche nach Audio..." 
+                               class="ios-search">
+                    </div>
+                </div>
+                <div class="audio-content">
+                    <!-- Recently Played -->
+                    <section class="audio-section">
+                        <h3>Kürzlich gehört</h3>
+                        <div class="audio-list" id="recent-audio"></div>
+                    </section>
+                    
+                    <!-- Playlists -->
+                    <section class="audio-section">
+                        <h3>Playlists</h3>
+                        <div class="playlist-grid" id="playlists"></div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- Articles Section -->
+            <section id="articles-section" class="content-section">
+                <div class="articles-header">
+                    <h2>Artikel & Lesungen</h2>
+                    <div class="category-filters">
+                        <button class="category-btn active" data-category="all">Alle</button>
+                        <button class="category-btn" data-category="faith">Glaube</button>
+                        <button class="category-btn" data-category="relationships">Beziehungen</button>
+                        <button class="category-btn" data-category="purpose">Sinn</button>
+                    </div>
+                </div>
+                <div class="articles-list" id="articles-container"></div>
+            </section>
+
+            <!-- Compass Section -->
+            <section id="compass-section" class="content-section">
+                <div class="compass-header">
+                    <div class="compass-icon-large">🧭</div>
+                    <h2>Göttliche Orientierung</h2>
+                </div>
+                <div class="compass-tools">
+                    <div class="tool-card" data-tool="wisdom">
+                        <div class="tool-icon">💭</div>
+                        <h3>Tägliche Weisheit</h3>
+                        <p>Hole dir deinen täglichen Weisheitsimpuls</p>
+                    </div>
+                    <div class="tool-card" data-tool="bible-search">
+                        <div class="tool-icon">📖</div>
+                        <h3>Bibel-Suche</h3>
+                        <p>Was sagt die Bibel über...</p>
+                    </div>
+                    <div class="tool-card" data-tool="decision">
+                        <div class="tool-icon">🤔</div>
+                        <h3>Entscheidungshilfe</h3>
+                        <p>Hilfe bei schwierigen Entscheidungen</p>
+                    </div>
+                    <div class="tool-card" data-tool="prayer">
+                        <div class="tool-icon">🙏</div>
+                        <h3>Gebetsunterstützung</h3>
+                        <p>Persönliche Gebetsbegleitung</p>
+                    </div>
+                </div>
+                <div id="tool-content" class="tool-content"></div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="content-section">
+                <div class="settings-header">
+                    <h2>Einstellungen</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">👤</span>
+                            <div>
+                                <h3>Persönliche Daten</h3>
+                                <p>Name und persönliche Einstellungen</p>
+                            </div>
+                        </div>
+                        <button class="ios-button-secondary" id="edit-name-btn">
+                            Bearbeiten
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">🔔</span>
+                            <div>
+                                <h3>Benachrichtigungen</h3>
+                                <p>Tägliche Erinnerungen einstellen</p>
+                            </div>
+                        </div>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="notifications-toggle" checked>
+                            <label for="notifications-toggle"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">🌙</span>
+                            <div>
+                                <h3>Dark Mode</h3>
+                                <p>Automatisch oder manuell</p>
+                            </div>
+                        </div>
+                        <select class="ios-select" id="theme-select">
+                            <option value="auto">Automatisch</option>
+                            <option value="light">Hell</option>
+                            <option value="dark">Dunkel</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">💾</span>
+                            <div>
+                                <h3>Offline-Inhalte</h3>
+                                <p>Verfügbare Offline-Inhalte: <span id="offline-storage">0 MB</span></p>
+                            </div>
+                        </div>
+                        <button class="ios-button-secondary" id="manage-offline-btn">
+                            Verwalten
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-icon">ℹ️</span>
+                            <div>
+                                <h3>Über Jugendkompass</h3>
+                                <p>Version 1.0.0</p>
+                            </div>
+                        </div>
+                        <button class="ios-button-secondary" id="about-btn">
+                            Info
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Audio Player Mini -->
+        <div id="mini-player" class="mini-player hidden">
+            <div class="mini-player-content">
+                <div class="mini-track-info">
+                    <div class="mini-album-art"></div>
+                    <div>
+                        <p class="mini-track-title">Kein Titel</p>
+                        <p class="mini-track-artist">Kein Künstler</p>
+                    </div>
+                </div>
+                <div class="mini-player-controls">
+                    <button class="mini-control-btn" id="mini-play-btn">▶️</button>
+                    <button class="mini-control-btn" id="mini-close-btn">✕</button>
+                </div>
+            </div>
+            <div class="mini-progress-bar">
+                <div class="mini-progress"></div>
+            </div>
+        </div>
+
+        <!-- Audio Player Full -->
+        <div id="full-player" class="full-player hidden">
+            <div class="player-header">
+                <button class="player-close-btn" id="close-player-btn">↓</button>
+                <h3 class="player-title">Jetzt läuft</h3>
+                <button class="player-menu-btn">⋮</button>
+            </div>
+            
+            <div class="player-content">
+                <div class="album-art-container">
+                    <div class="album-art-large"></div>
+                </div>
+                
+                <div class="track-info">
+                    <h2 id="full-track-title">Titel</h2>
+                    <p id="full-track-artist">Künstler</p>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-time">
+                        <span id="current-time">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress"></div>
+                        <div class="progress-handle"></div>
+                    </div>
+                </div>
+                
+                <div class="player-controls">
+                    <button class="control-btn" id="shuffle-btn">🔀</button>
+                    <button class="control-btn" id="prev-btn">⏮️</button>
+                    <button class="control-btn large" id="play-pause-btn">▶️</button>
+                    <button class="control-btn" id="next-btn">⏭️</button>
+                    <button class="control-btn" id="repeat-btn">🔁</button>
+                </div>
+                
+                <div class="player-extras">
+                    <button class="extra-btn" id="sleep-timer-btn">⏰</button>
+                    <button class="extra-btn" id="speed-btn">1x</button>
+                    <button class="extra-btn" id="download-btn">⬇️</button>
+                    <button class="extra-btn" id="share-btn">↗️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- iOS 26 Bottom Navigation -->
+        <nav class="ios-navbar">
+            <div class="nav-background"></div>
+            <div class="nav-items">
+                <button class="nav-item" data-section="audio">
+                    <span class="nav-icon">🎧</span>
+                    <span class="nav-label">Audio</span>
+                </button>
+                
+                <button class="nav-item" data-section="articles">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-label">Artikel</span>
+                </button>
+                
+                <button class="nav-item active" data-section="feed">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Start</span>
+                </button>
+                
+                <button class="nav-item" data-section="compass">
+                    <span class="nav-icon">🧭</span>
+                    <span class="nav-label">Kompass</span>
+                </button>
+                
+                <button class="nav-item" data-section="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Einst.</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/feed-manager.js"></script>
+    <script src="js/audio-player.js"></script>
+    <script src="js/nav-controller.js"></script>
+    <script src="js/offline-manager.js"></script>
+    <script src="sw-register.js"></script>
+</body>
+</html>

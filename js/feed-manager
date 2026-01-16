@@ -1,0 +1,403 @@
+// Feed Manager für die Instagram-ähnliche Kartenansicht
+class FeedManager {
+    constructor() {
+        this.cards = [
+            {
+                id: 'verse-of-day',
+                type: 'verse',
+                icon: '📖',
+                title: 'Vers des Tages',
+                content: '"Denn ich weiß wohl, was ich für Gedanken über euch habe, spricht der HERR: Gedanken des Friedens und nicht des Leidens, dass ich euch gebe Zukunft und Hoffnung." - Jeremia 29:11',
+                color: '#5D8AA8',
+                actions: ['share', 'bookmark']
+            },
+            {
+                id: 'prayer-list',
+                type: 'prayer',
+                icon: '🙏',
+                title: 'Meine Gebetsliste',
+                content: '1. Für meine Familie<br>2. Für Frieden in der Welt<br>3. Für meine Freunde<br>4. Danke für meine Gesundheit',
+                color: '#9B6B9E',
+                actions: ['add', 'answered']
+            },
+            {
+                id: 'bible-reading',
+                type: 'reading',
+                icon: '📚',
+                title: 'Tägliche Bibellese',
+                content: 'Psalm 23: Der gute Hirte<br><br>Lesefortschritt: <div class="ios-progress"><div class="ios-progress-bar" style="width: 65%"></div></div>',
+                color: '#F4A261',
+                actions: ['read', 'notes']
+            },
+            {
+                id: 'community',
+                type: 'community',
+                icon: '👥',
+                title: 'Community Moment',
+                content: '"Heute habe ich erlebt, wie Gebete erhört wurden. Gott ist treu!" - Sarah, 19',
+                color: '#2A9D8F',
+                actions: ['like', 'comment']
+            },
+            {
+                id: 'weekly-challenge',
+                type: 'challenge',
+                icon: '🏆',
+                title: 'Wochen-Challenge',
+                content: 'Teile heute etwas Positives mit drei Menschen.<br><br>Erledigt: 1/3',
+                color: '#E76F51',
+                actions: ['complete', 'share']
+            },
+            {
+                id: 'gratitude-journal',
+                type: 'gratitude',
+                icon: '✨',
+                title: 'Dankbarkeitstagebuch',
+                content: 'Heute bin ich dankbar für:<br>• Meine Familie<br>• Die Sonne scheint<br>• Gute Gespräche',
+                color: '#6A9BC3',
+                actions: ['add', 'history']
+            }
+        ];
+        
+        this.currentIndex = 0;
+    }
+
+    init() {
+        this.renderCards();
+        this.setupSwipe();
+        this.setupRefresh();
+    }
+
+    renderCards() {
+        const container = document.querySelector('.feed-container');
+        container.innerHTML = '';
+        
+        this.cards.forEach(card => {
+            const cardElement = this.createCardElement(card);
+            container.appendChild(cardElement);
+        });
+    }
+
+    createCardElement(card) {
+        const div = document.createElement('div');
+        div.className = 'feed-card';
+        div.id = `card-${card.id}`;
+        
+        let actionsHTML = '';
+        card.actions.forEach(action => {
+            let icon, label;
+            switch(action) {
+                case 'share': icon = '↗️'; label = 'Teilen'; break;
+                case 'bookmark': icon = '🔖'; label = 'Merken'; break;
+                case 'add': icon = '➕'; label = 'Hinzufügen'; break;
+                case 'answered': icon = '✅'; label = 'Beantwortet'; break;
+                case 'read': icon = '👁️'; label = 'Lesen'; break;
+                case 'notes': icon = '📝'; label = 'Notizen'; break;
+                case 'like': icon = '❤️'; label = 'Gefällt mir'; break;
+                case 'comment': icon = '💬'; label = 'Kommentieren'; break;
+                case 'complete': icon = '✅'; label = 'Abschließen'; break;
+                case 'history': icon = '📅'; label = 'Verlauf'; break;
+            }
+            
+            actionsHTML += `
+                <button class="action-btn" data-action="${action}">
+                    <span>${icon}</span>
+                    ${label}
+                </button>
+            `;
+        });
+        
+        div.innerHTML = `
+            <div class="card-header">
+                <div class="card-icon" style="background: ${card.color}">
+                    ${card.icon}
+                </div>
+                <div class="card-title">${card.title}</div>
+            </div>
+            <div class="card-content">
+                ${card.content}
+            </div>
+            <div class="card-actions">
+                ${actionsHTML}
+            </div>
+        `;
+        
+        // Event Listener für Aktionen
+        div.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleCardAction(card.id, e.currentTarget.dataset.action);
+            });
+        });
+        
+        // Event Listener für Karten-Tap
+        div.addEventListener('click', () => this.expandCard(card.id));
+        
+        return div;
+    }
+
+    handleCardAction(cardId, action) {
+        const card = this.cards.find(c => c.id === cardId);
+        if (!card) return;
+        
+        // Simuliere Haptic Feedback
+        if (window.Jugendkompass) {
+            window.Jugendkompass.hapticFeedback();
+        }
+        
+        switch(action) {
+            case 'share':
+                this.shareCard(card);
+                break;
+            case 'bookmark':
+                this.bookmarkCard(card);
+                break;
+            case 'like':
+                this.likeCard(card);
+                break;
+            case 'add':
+                this.addPrayer();
+                break;
+            case 'complete':
+                this.completeChallenge(card);
+                break;
+        }
+    }
+
+    shareCard(card) {
+        if (navigator.share) {
+            navigator.share({
+                title: card.title,
+                text: card.content.replace(/<br>/g, '\n'),
+                url: window.location.href
+            });
+        } else {
+            alert('Teile-Funktion wird in deinem Browser nicht unterstützt.');
+        }
+    }
+
+    bookmarkCard(card) {
+        const bookmarks = JSON.parse(localStorage.getItem('jk_bookmarks') || '[]');
+        if (!bookmarks.find(b => b.id === card.id)) {
+            bookmarks.push(card);
+            localStorage.setItem('jk_bookmarks', JSON.stringify(bookmarks));
+            
+            if (window.Jugendkompass) {
+                window.Jugendkompass.showAlert('Karte wurde gemerkt!');
+            }
+        }
+    }
+
+    likeCard(card) {
+        const likes = JSON.parse(localStorage.getItem('jk_likes') || '{}');
+        likes[card.id] = !likes[card.id];
+        localStorage.setItem('jk_likes', JSON.stringify(likes));
+        
+        // Visual Feedback
+        const cardElement = document.getElementById(`card-${card.id}`);
+        const likeBtn = cardElement.querySelector('[data-action="like"]');
+        if (likeBtn) {
+            if (likes[card.id]) {
+                likeBtn.innerHTML = '<span>❤️</span> Gefällt mir';
+                cardElement.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    cardElement.style.transform = '';
+                }, 200);
+            } else {
+                likeBtn.innerHTML = '<span>🤍</span> Gefällt mir';
+            }
+        }
+    }
+
+    addPrayer() {
+        const prayer = prompt('Was möchtest du fürbiten?');
+        if (prayer) {
+            const prayers = JSON.parse(localStorage.getItem('jk_prayers') || '[]');
+            prayers.push({
+                text: prayer,
+                date: new Date().toISOString(),
+                answered: false
+            });
+            localStorage.setItem('jk_prayers', JSON.stringify(prayers));
+            
+            if (window.Jugendkompass) {
+                window.Jugendkompass.showAlert('Gebetsanliegen hinzugefügt!');
+            }
+        }
+    }
+
+    completeChallenge(card) {
+        const challenges = JSON.parse(localStorage.getItem('jk_challenges') || '{}');
+        challenges[card.id] = true;
+        localStorage.setItem('jk_challenges', JSON.stringify(challenges));
+        
+        // Update Karteninhalt
+        const cardElement = document.getElementById(`card-${card.id}`);
+        const contentDiv = cardElement.querySelector('.card-content');
+        contentDiv.innerHTML = contentDiv.innerHTML.replace('Erledigt: 1/3', 'Erledigt: 3/3 ✅');
+        
+        if (window.Jugendkompass) {
+            window.Jugendkompass.showAlert('Challenge abgeschlossen! Gut gemacht!', 'success');
+        }
+    }
+
+    expandCard(cardId) {
+        const card = this.cards.find(c => c.id === cardId);
+        if (!card) return;
+        
+        // Erstelle Modal
+        const modal = document.createElement('div');
+        modal.className = 'ios-modal';
+        modal.innerHTML = `
+            <div class="ios-modal-content" style="max-width: 500px">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px">
+                    <div class="card-icon" style="background: ${card.color}">
+                        ${card.icon}
+                    </div>
+                    <h2 style="margin: 0">${card.title}</h2>
+                </div>
+                <div style="line-height: 1.6; margin-bottom: 24px">
+                    ${card.content}
+                </div>
+                <button class="ios-button-primary" id="close-modal" style="width: 100%">
+                    Schließen
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('close-modal').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+
+    setupSwipe() {
+        let startX, startY;
+        const container = document.querySelector('.feed-container');
+        
+        container.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+        
+        container.addEventListener('touchmove', (e) => {
+            if (!startX || !startY) return;
+            
+            const diffX = startX - e.touches[0].clientX;
+            const diffY = startY - e.touches[0].clientY;
+            
+            // Horizontales Swipe für Aktionen
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                e.preventDefault();
+            }
+        });
+        
+        container.addEventListener('touchend', (e) => {
+            if (!startX || !startY) return;
+            
+            const diffX = startX - e.changedTouches[0].clientX;
+            
+            if (Math.abs(diffX) > 50) {
+                // Swipe erkannt
+                const card = e.target.closest('.feed-card');
+                if (card) {
+                    if (diffX > 0) {
+                        // Swipe nach links
+                        card.style.transform = 'translateX(-100px)';
+                        setTimeout(() => {
+                            card.style.transform = '';
+                        }, 300);
+                    } else {
+                        // Swipe nach rechts
+                        card.style.transform = 'translateX(100px)';
+                        setTimeout(() => {
+                            card.style.transform = '';
+                        }, 300);
+                    }
+                }
+            }
+            
+            startX = null;
+            startY = null;
+        });
+    }
+
+    setupRefresh() {
+        let startY = 0;
+        const refreshIndicator = document.getElementById('refresh-indicator');
+        
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+            }
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (startY && window.scrollY === 0) {
+                const diff = e.touches[0].pageY - startY;
+                
+                if (diff > 0) {
+                    refreshIndicator.style.opacity = Math.min(diff / 100, 1);
+                    refreshIndicator.style.transform = `translateY(${Math.min(diff, 100)}px)`;
+                    e.preventDefault();
+                }
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (startY) {
+                const diff = e.changedTouches[0].pageY - startY;
+                
+                if (diff > 100) {
+                    // Pull-to-refresh ausgelöst
+                    refreshIndicator.style.opacity = '1';
+                    this.refreshFeed();
+                } else {
+                    refreshIndicator.style.opacity = '0';
+                    refreshIndicator.style.transform = 'translateY(0)';
+                }
+                
+                startY = 0;
+            }
+        });
+    }
+
+    refreshFeed() {
+        // Simuliere Datenaktualisierung
+        setTimeout(() => {
+            // Füge eine neue Karte hinzu
+            const newCard = {
+                id: `new-${Date.now()}`,
+                type: 'inspiration',
+                icon: '💫',
+                title: 'Neue Inspiration',
+                content: 'Gott gibt uns jeden Tag neue Chancen. Nutze sie!',
+                color: '#9B6B9E',
+                actions: ['share', 'bookmark']
+            };
+            
+            this.cards.unshift(newCard);
+            this.renderCards();
+            
+            // Verstecke Indicator
+            const refreshIndicator = document.getElementById('refresh-indicator');
+            refreshIndicator.style.opacity = '0';
+            refreshIndicator.style.transform = 'translateY(0)';
+            
+            if (window.Jugendkompass) {
+                window.Jugendkompass.showAlert('Feed aktualisiert!');
+            }
+        }, 1500);
+    }
+}
+
+// Automatisch initialisieren
+document.addEventListener('DOMContentLoaded', () => {
+    window.FeedManager = new FeedManager();
+});
